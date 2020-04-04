@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- one project with multiple targets  -->
+<project name="test" default="run" basedir=".">
+	<!-- paths used -->
+	<property name="src.dir" value="src" />
+	<property name="dest.dir" value="build" />
+	<property name="dest.report" value="report" />
+
+	<!-- 项目运行测试所需要依赖的jar -->
+	<path id="jarfile">
+		<fileset dir="lib" includes="testng-6.11.jar" />
+		<fileset dir="lib" includes="reportng-1.1.6.jar" />
+		<fileset dir="lib" includes="velocity-dep-1.4.jar" />
+		<fileset dir="lib" includes="guice-3.0.jar" />
+		<fileset dir="lib" includes="log4j-1.2.17.jar" />
+		<fileset dir="lib" includes="saxon-8.7.jar" />
+		<fileset dir="lib" includes="testng-6.11.jar" />
+		<fileset dir="lib" includes="selenium-java-3.0.1.zip" />
+		<fileset dir="lib" includes="selenium-server-standalone-3.0.1.jar" />
+	</path>
+
+	<!-- delete the output folder if it exists -->
+	<delete dir="${dest.dir}" failonerror="false" />
+	<!-- create the output folder -->
+	<mkdir dir="${dest.dir}" />
+	<mkdir dir="${dest.report}" />
+
+	<!-- target to compile all test classes out -->
+	<target name="build">
+		<!-- compile -->
+		<javac srcdir="${src.dir}" destdir="${dest.dir}" encoding="UTF-8" debug="true" fork="yes" includeAntRuntime="false">
+			<classpath refid="jarfile" />
+		</javac>
+	</target>
+
+	<!-- define the TestNG task -->
+	<taskdef name="testng" classname="com.beust.testng.TestNGAntTask" classpathref="jarfile" />
+
+	<!-- 运行测试，并使用reportng生成测试报告 -->
+	<target name="run" depends="build" >
+		<!-- 添加监听,在运行测试时使用reportng生成测试报告 -->
+		<testng classpathref="jarfile" outputDir="${dest.report}" haltOnFailure="false" useDefaultListeners="false" 
+			listeners="org.uncommons.reportng.HTMLReporter,org.uncommons.reportng.JUnitXMLReporter">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<classfileset dir="${dest.dir}" includes="*.class" />
+			<classpath>
+				<pathelement path="${dest.dir}" />
+			</classpath>
+			<xmlfileset dir="${basedir}" includes="testng.xml" />
+		</testng>
+	</target>
+</project>

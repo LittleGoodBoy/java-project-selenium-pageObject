@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- one project with multiple targets  -->
+<!-- 指定根路径 -->
+<project name="test" default="run" basedir=".">
+	<!-- 指定资源目录 -->
+	<property name="src.dir" value="src" />
+	<!-- 指定构建生成的class存放目录 -->
+	<property name="dest.dir" value="build" />
+	<!-- 指定执行测试完成之后测试报告存放目录 -->
+	<property name="dest.report" value="report" />
+
+	<!-- 指定项目所需的架包及对应的目录 -->
+	<path id="jarfile">
+		<fileset dir="lib" includes="testng-6.11.jar" />
+		<fileset dir="lib" includes="log4j-1.2.17.jar" />
+		<fileset dir="lib" includes="java-client-4.1.2.jar" />
+		<fileset dir="lib" includes="selenium-java-3.0.1.zip" />
+		<fileset dir="lib" includes="selenium-server-standalone-3.0.1.jar" />
+	</path>
+
+	<!-- 删除build目录，如果存在的话 -->
+	<delete dir="${dest.dir}" failonerror="false" />
+	<!-- 创建目录，用于存放编译的class文件和执行测试后生成的测试报告 -->
+	<mkdir dir="${dest.dir}" />
+	<mkdir dir="${dest.report}" />
+
+	<!-- 编译java代码，并将编译后的代码放入到创建的build目录下 -->
+	<target name="build">
+		<!-- compile -->
+		<javac srcdir="${src.dir}" destdir="${dest.dir}" includeAntRuntime="false" encoding="UTF-8" debug="true" fork="yes">
+			<!-- 指定项目所依赖的Jar包 -->
+			<classpath refid="jarfile" />   
+		</javac>
+	</target>
+	
+	<!-- 定义TestNG任务 -->
+	<taskdef name="testng" classname="com.beust.testng.TestNGAntTask" classpathref="jarfile" />
+
+	<!-- 运行测试 -->
+	<target name="run" depends="build">
+		<testng classpathref="jarfile" outputDir="${dest.report}" haltOnFailure="false">
+			<!-- 解决控制台乱码问题 -->
+			<jvmarg value="-Dfile.encoding=UTF-8" /> 
+			<!-- 指定运行所需的class及所在目录 -->
+			<classfileset dir="${dest.dir}" includes="*.class" />
+			<classpath>
+				<pathelement path="${dest.dir}" />
+			</classpath>
+			<!-- 指定运行测试的testng.xml所在目录及文件名称 -->
+			<xmlfileset dir="${basedir}" includes="testng.xml" />
+		</testng>
+	</target>
+</project>

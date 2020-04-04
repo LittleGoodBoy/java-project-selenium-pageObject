@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- one project with multiple targets  -->
+<project name="test" default="transform" basedir=".">
+	<!-- paths used -->
+	<property name="src.dir" value="src" />
+	<property name="dest.dir" value="build" />
+	<property name="dest.report" value="report" />
+
+	<path id="jarfile">
+		<fileset dir="lib" includes="testng-6.11.jar" />
+		<fileset dir="lib" includes="saxon-8.7.jar" />
+	</path>
+
+	<!-- delete the output folder if it exists -->
+	<delete dir="${dest.dir}" failonerror="false" />
+	<!-- create the output folder -->
+	<mkdir dir="${dest.dir}" />
+	<mkdir dir="${dest.report}" />
+
+	<!-- target to compile all test classes out -->
+	<target name="build">
+		<!-- compile -->
+		<javac srcdir="${src.dir}" destdir="${dest.dir}" encoding="UTF-8" debug="true" fork="yes">
+			<classpath refid="jarfile" />
+		</javac>
+	</target>
+
+	<!-- define the TestNG task -->
+	<taskdef name="testng" classname="com.beust.testng.TestNGAntTask" classpathref="jarfile" />
+
+	<!-- run test -->
+	<target name="run" depends="build">
+		<testng classpathref="jarfile" outputDir="${dest.report}" haltOnFailure="false">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+
+			<classfileset dir="${dest.dir}" includes="*.class" />
+			<classpath>
+				<pathelement path="${dest.dir}" />
+			</classpath>
+			<xmlfileset dir="${basedir}" includes="testng.xml" />
+		</testng>
+	</target>
+
+	<target name="transform" depends="run">
+		<xslt in="${basedir}/report/testng-results.xml" style="${basedir}/res/testng-results.xsl" out="${basedir}/report/index_other.html" classpathref="jarfile">
+			<!-- you need to specify the directory here again -->
+			<param name="testNgXslt.outputDir" expression="${basedir}/report/" />
+			<param name="testNgXslt.showRuntimeTotals" expression="true" />
+			<classpath refid="jarfile" />
+		</xslt>
+	</target>
+</project>
